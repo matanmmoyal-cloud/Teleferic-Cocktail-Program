@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telefèric Barcelona — Cocktail Builder</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:linear-gradient(135deg,#1a0a04 0%,#3d1c0a 50%,#1a0a04 100%);display:flex;align-items:flex-start;justify-content:center;padding:20px 12px 60px;font-family:Georgia,serif}
+  #app{max-width:480px;width:100%}
+  .card{background:#faf6f0;border-radius:16px;padding:24px 20px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+  /* MENU */
+  .logo-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .logo-icon{font-size:44px}
+  .logo-title{font-size:28px;font-weight:bold;color:#1a0a04;letter-spacing:.05em}
+  .logo-sub{font-size:11px;letter-spacing:.2em;color:#c7522a;font-family:sans-serif;font-weight:700}
+  .menu-desc{color:#5c3a22;font-size:14px;line-height:1.6;margin-bottom:20px}
+  .score-row{display:flex;gap:10px;margin-bottom:22px}
+  .score-pill{flex:1;background:#3d1c0a;border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;align-items:center}
+  .score-num{color:#f5c97e;font-size:22px;font-weight:bold}
+  .score-label{color:#c4a074;font-size:10px;letter-spacing:.12em;font-family:sans-serif}
+  .filter-label{font-size:10px;letter-spacing:.2em;color:#c7522a;font-family:sans-serif;font-weight:700;margin-bottom:8px}
+  .filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px}
+  .filter-btn{padding:9px 6px;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:12px;color:#5c3a22;font-family:sans-serif;transition:all .15s;text-align:center}
+  .filter-btn.active{background:#c7522a;border-color:#c7522a;color:#fff}
+  .filter-btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-primary{width:100%;padding:14px;background:#c7522a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;letter-spacing:.08em;font-family:sans-serif;box-shadow:0 3px 12px rgba(199,82,42,.4);margin-bottom:10px}
+  .btn-ghost{width:100%;padding:10px;background:transparent;color:#999;border:1px solid #ddd;border-radius:8px;font-size:12px;cursor:pointer;font-family:sans-serif}
+  /* QUIZ HEADER */
+  .quiz-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .back-btn{background:none;border:none;color:#c7522a;cursor:pointer;font-size:13px;font-family:sans-serif;padding:0;white-space:nowrap}
+  .cocktail-name{flex:1;font-size:17px;font-weight:bold;color:#1a0a04;letter-spacing:.04em}
+  .cat-tag{font-size:10px;background:#c7522a;color:#fff;padding:3px 8px;border-radius:20px;font-family:sans-serif;letter-spacing:.1em;white-space:nowrap}
+  /* PROGRESS */
+  .progress-bar{display:flex;gap:6px;margin-bottom:16px;align-items:center}
+  .progress-dot{width:10px;height:10px;border-radius:50%;transition:all .3s;flex-shrink:0}
+  /* BAR COUNTER */
+  .bar-counter{background:#3d1c0a;border-radius:10px;padding:10px 14px;margin-bottom:14px}
+  .bar-counter-label{font-size:9px;letter-spacing:.18em;color:#c4a074;font-family:sans-serif;margin-bottom:6px}
+  .bar-items{display:flex;flex-wrap:wrap;gap:6px}
+  .bar-item{font-size:11px;color:#f5c97e;background:rgba(255,255,255,.08);padding:3px 8px;border-radius:20px}
+  /* STEP HEADER */
+  .step-label{font-size:17px;font-weight:bold;color:#1a0a04;margin-bottom:4px}
+  .mixer-count{font-size:12px;color:#c7522a;font-family:sans-serif}
+  .hint{font-size:12px;color:#8c6a4a;font-style:italic;margin-top:4px}
+  /* TRIES */
+  .tries-row{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+  .try-dot{width:10px;height:10px;border-radius:50%;transition:background .2s}
+  .tries-label{font-size:11px;color:#8c6a4a;font-family:sans-serif}
+  /* GLASS GRID */
+  .glass-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .glass-card{padding:14px 10px;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;position:relative;border:2px solid #ddd;background:#fff}
+  .glass-card.correct{border-color:#2ecc71;background:#eafaf1}
+  .glass-card.wrong{border-color:#e84a3c;background:#fdf0ee}
+  .glass-card.reveal-correct{border-color:#2ecc71;background:#eafaf1}
+  .glass-svg{height:75px;display:flex;align-items:center;justify-content:center}
+  .glass-name{font-size:12px;font-weight:bold;color:#1a0a04;text-align:center}
+  .glass-desc{font-size:10px;color:#8c6a4a;text-align:center}
+  .badge{position:absolute;top:6px;right:10px;font-weight:bold;font-size:16px}
+  /* OPTIONS LIST */
+  .options-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .option-btn{width:100%;padding:13px 16px;border-radius:10px;cursor:pointer;font-size:13px;text-align:left;font-family:sans-serif;border:2px solid #e8e0d8;background:#fff;color:#2c1a0e;transition:all .15s;line-height:1.4}
+  .option-btn.correct{background:#eafaf1;border-color:#2ecc71}
+  .option-btn.wrong{background:#fdf0ee;border-color:#e84a3c}
+  .option-btn.reveal-correct{background:#eafaf1;border-color:#2ecc71}
+  /* SPECIAL CARDS */
+  .info-card{border-radius:14px;padding:24px 20px;margin-bottom:16px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+  .info-card.blue{background:#1a3a6e}
+  .info-card.green{background:#1a3a1a}
+  .info-card-icon{font-size:42px}
+  .info-card-text{color:#cce0ff;font-size:15px;line-height:1.6;font-family:sans-serif}
+  .info-card.green .info-card-text{color:#c0f0c0}
+  /* FEEDBACK */
+  .feedback-wrong{color:#e84a3c;font-size:13px;font-family:sans-serif;margin-bottom:10px}
+  .feedback-revealed{color:#8c6a4a;font-size:13px;font-family:sans-serif;margin-bottom:10px;line-height:1.5}
+  /* NEXT BTN */
+  .btn-next{width:100%;padding:13px;background:#c7522a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;font-family:sans-serif;letter-spacing:.05em;box-shadow:0 3px 12px rgba(199,82,42,.35)}
+  /* RESULT */
+  .result-name{font-size:22px;font-weight:bold;color:#1a0a04;letter-spacing:.05em;margin-bottom:10px}
+  .result-emoji{font-size:44px;margin-bottom:8px}
+  .result-title{font-size:16px;color:#c7522a;font-family:sans-serif;font-weight:700;margin-bottom:16px}
+  .result-summary{background:#3d1c0a;border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .result-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0;font-size:12px;color:#c4a074;font-family:sans-serif;flex-wrap:wrap}
+  .result-val{color:#f5c97e;font-weight:bold;text-align:right;max-width:65%}
+  .session-score{font-size:13px;color:#8c6a4a;font-family:sans-serif;margin-bottom:16px;text-align:center}
+  .result-btns{display:flex;flex-direction:column;gap:10px}
+  /* DRILL MODE */
+  .drill-toggle-row{display:flex;align-items:center;justify-content:space-between;background:#1a0a04;border-radius:10px;padding:12px 16px;margin-bottom:16px}
+  .drill-toggle-label{color:#f5c97e;font-family:sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em}
+  .drill-toggle-sub{color:#c4a074;font-family:sans-serif;font-size:11px;margin-top:2px}
+  .toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0}
+  .toggle-switch input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;cursor:pointer;inset:0;background:#444;border-radius:26px;transition:.3s}
+  .toggle-slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+  input:checked+.toggle-slider{background:#c7522a}
+  input:checked+.toggle-slider:before{transform:translateX(22px)}
+  .drill-header{display:flex;align-items:center;gap:8px;background:#c7522a;border-radius:8px;padding:6px 12px;margin-bottom:10px}
+  .drill-header-icon{font-size:16px}
+  .drill-header-text{color:#fff;font-family:sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em}
+  .drill-lives{display:flex;gap:6px;align-items:center;margin-left:auto}
+  .drill-life{font-size:16px;transition:all .2s}
+  .timer-bar-wrap{height:5px;background:#e8e0d8;border-radius:3px;margin-bottom:12px;overflow:hidden}
+  .timer-bar{height:100%;border-radius:3px;transition:width .1s linear;background:#c7522a}
+  .timer-bar.warning{background:#e84a3c}
+  .drill-countdown{display:flex;align-items:center;justify-content:center;padding:32px 0 16px}
+  .drill-countdown-num{font-size:72px;font-weight:bold;color:#c7522a;font-family:Georgia,serif;animation:countPop .4s ease}
+  @keyframes countPop{0%{transform:scale(1.4);opacity:.5}100%{transform:scale(1);opacity:1}}
+  .drill-cocktail-reveal{text-align:center;padding:10px 0 4px;font-family:sans-serif}
+  .drill-cocktail-reveal-name{font-size:20px;font-weight:bold;color:#1a0a04;letter-spacing:.05em}
+  .drill-cocktail-reveal-sub{font-size:12px;color:#8c6a4a;margin-top:4px}
+  .drill-fail-card{background:#fdf0ee;border:2px solid #e84a3c;border-radius:14px;padding:20px;text-align:center;margin-bottom:16px}
+  .drill-fail-icon{font-size:40px;margin-bottom:8px}
+  .drill-fail-title{font-size:16px;font-weight:bold;color:#e84a3c;font-family:sans-serif;margin-bottom:6px}
+  .drill-fail-sub{font-size:13px;color:#8c6a4a;font-family:sans-serif}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+  .shake{animation:shake .4s ease}
+  .pop{animation:pop .3s ease}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const COCKTAILS = [
+  {
+    id: "margarita",
+    name: "MARGARITA",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¼ oz Agave Syrup", "¾ oz Triple Sec", "¾ oz Lime Juice"],
+    mixerHints: ["Softens the tartness without overpowering", "Adds sweetness and a hint of orange", "Brings the sour and balance"],
+    spirit: "1½ oz Cazadores Silver",
+    spiritOptions: ["1½ oz Cazadores Silver", "2 oz Dickel 8 Yr", "2 oz Havana Rum", "1½ oz Ketel One"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    rim: "Half salt rim",
+    rimOptions: ["Half salt rim", "Half Tajin rim", "No rim"],
+    garnish: "Lime wedge",
+    garnishOptions: ["Orange peel", "Lime wedge", "3 coffee beans", "Lime wheel"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "espresso-martini",
+    name: "ESPRESSO MARTINI",
+    category: "Classic Cocktails",
+    glass: "7oz Coupette",
+    glassOptions: ["Rocks glass", "Nick & Nora", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¼ oz Simple Syrup", "1 oz Coffee Liqueur", "1 Espresso"],
+    mixerHints: ["Just enough sweetness to smooth the edges", "Gives depth and sweetness to the coffee flavor", "The fresh shot that wakes it up"],
+    spirit: "1½ oz Ketel One",
+    spiritOptions: ["1½ oz Cazadores Silver", "1½ oz Ketel One", "2 oz Bombay 1er Cru", "2 oz Dickel 8 Yr"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "3 coffee beans",
+    garnishOptions: ["Lemon twist", "3 coffee beans", "Orange peel", "3 Angostura hearts"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "dry-martini",
+    name: "DRY MARTINI",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Rocks glass", "Nick & Nora", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¼ oz Dry Vermouth"],
+    mixerHints: ["Just a whisper — keeps it from being too sharp"],
+    spirit: "2½ oz Bombay 1er Cru or Ketel One",
+    spiritOptions: ["2½ oz Bombay 1er Cru or Ketel One", "2 oz Dickel 8 Yr", "2 oz Cachaça", "1½ oz Cazadores Silver"],
+    method: "Shake & Strain",
+    methodOptions: ["Shake & Strain", "Shake & Double Strain", "Stir", "Build"],
+    garnish: "Stick with 2 olives or Lemon twist",
+    garnishOptions: ["Orange peel", "3 coffee beans", "Stick with 2 olives or Lemon twist", "Lime wedge"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "dirty-martini",
+    name: "DIRTY MARTINI",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["7oz Coupette", "Nick & Nora", "Rocks glass", "12oz Hi-Ball"],
+    mixers: ["¼ oz Dry Vermouth", "½ oz Olive Brine"],
+    mixerHints: ["Keeps it from being too sharp", "What makes it 'dirty' — savory and briny"],
+    spirit: "2 oz Bombay 1er Cru or Ketel One",
+    spiritOptions: ["2 oz Bombay 1er Cru or Ketel One", "2 oz Dickel 8 Yr", "2 oz Cachaça", "1½ oz Cazadores Silver"],
+    method: "Shake & Strain",
+    methodOptions: ["Shake & Strain", "Shake & Double Strain", "Stir", "Build"],
+    garnish: "Stick with 2 olives",
+    garnishOptions: ["Lemon twist", "Stick with 2 olives", "3 coffee beans", "Orange peel"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "vesper-martini",
+    name: "VESPER MARTINI",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Rocks glass", "Nick & Nora", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["½ oz Lillet Blanc"],
+    mixerHints: ["Bond's secret — a French touch that softens the spirit"],
+    spirit: "1½ oz Bombay 1er Cru + 1 oz Ketel One",
+    spiritOptions: ["1½ oz Bombay 1er Cru + 1 oz Ketel One", "2 oz Dickel 8 Yr", "2 oz Pisco", "1½ oz Cazadores Silver"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "Lemon twist",
+    garnishOptions: ["Lemon twist", "3 coffee beans", "Orange peel", "Stick with 2 olives"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "old-fashioned",
+    name: "OLD FASHIONED",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¼ oz Simple Syrup", "6–8 dashes Angostura Bitters"],
+    mixerHints: ["Cuts the proof without diluting character", "A few dashes that add spice and complexity"],
+    spirit: "2 oz Dickel 8 Yr",
+    spiritOptions: ["2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "2 oz Bombay 1er Cru", "1½ oz Ketel One"],
+    method: "Stir",
+    methodOptions: ["Shake & Strain", "Stir", "Build-Stir", "Shake & Dump Pour"],
+    garnish: "Orange twist and 2 maraschino cherries on stick",
+    garnishOptions: ["Lemon twist", "Orange twist and 2 maraschino cherries on stick", "3 coffee beans", "Lime wedge"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "negroni",
+    name: "NEGRONI",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["1 oz Sweet Vermouth", "1 oz Campari"],
+    mixerHints: ["The sweet counter to the bitter", "The bitter backbone — bright red and assertive"],
+    spirit: "1 oz Bombay 1er Cru",
+    spiritOptions: ["1 oz Bombay 1er Cru", "2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "1½ oz Ketel One"],
+    method: "Stir",
+    methodOptions: ["Shake & Strain", "Stir", "Build-Pour", "Build & Churn"],
+    garnish: "Orange peel",
+    garnishOptions: ["Lemon twist", "Orange peel", "3 coffee beans", "Lime wedge"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "mai-tai",
+    name: "MAI TAI",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["½ oz Triple Sec", "½ oz Orgeat", "1 oz Lime Juice"],
+    mixerHints: ["A citrus sweetener that bridges the two rums", "Tropical nuttiness — the soul of a tiki drink", "Keeps the whole thing from going too sweet"],
+    spirit: "1 oz Havana Club + 1 oz Gosling's Dark",
+    spiritOptions: ["1 oz Havana Club + 1 oz Gosling's Dark", "2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "2 oz Bombay 1er Cru"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "Dry lime wheel",
+    garnishOptions: ["Dry lime wheel", "Orange peel", "3 coffee beans", "Maraschino cherries"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "pisco-sour",
+    name: "PISCO SOUR",
+    category: "Classic Cocktails",
+    glass: "7oz Coupette",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz Simple Syrup", "¾ oz Egg White", "1 oz Lime Juice"],
+    mixerHints: ["Balances the tartness", "Creates the signature foam on top", "Brings the sour to a sour"],
+    spirit: "2 oz Pisco",
+    spiritOptions: ["2 oz Pisco", "2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "2 oz Bombay 1er Cru"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "3 Angostura hearts",
+    garnishOptions: ["3 Angostura hearts", "Orange peel", "3 coffee beans", "Lime wedge"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "whiskey-sour",
+    name: "WHISKEY SOUR",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["2 dashes Angostura", "½ oz Simple Syrup", "½ oz Egg White", "¾ oz Lemon Juice"],
+    mixerHints: ["Rounds out the tartness", "Creates that creamy head", "The sour that defines the drink", "A finishing touch of spice and color"],
+    spirit: "2 oz Dickel 8 Yr",
+    spiritOptions: ["2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "2 oz Bombay 1er Cru", "2 oz Pisco"],
+    method: "Hard Shake & Double Strain",
+    methodOptions: ["Stir", "Hard Shake & Double Strain", "Build-Stir", "Shake & Strain"],
+    garnish: "2 cherries on stick",
+    garnishOptions: ["2 cherries on stick", "Orange peel", "Lime wedge", "Lemon twist"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "cosmopolitan",
+    name: "COSMOPOLITAN",
+    category: "Classic Cocktails",
+    glass: "Elegant coupette",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["¼ oz Simple Syrup", "½ oz Triple Sec", "½ oz Lime Juice", "1½ oz Cranberry Juice"],
+    mixerHints: ["A small touch to balance the acidity", "Adds a citrus sweetness and body", "Keeps it tart and bright", "Gives the drink its signature pink color"],
+    spirit: "1½ oz Ketel One",
+    spiritOptions: ["1½ oz Ketel One", "1½ oz Cazadores Silver", "2 oz Bombay 1er Cru", "2 oz Dickel 8 Yr"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "Orange peel",
+    garnishOptions: ["Orange peel", "Lime wedge", "3 coffee beans", "Lemon twist"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "caipirinha",
+    name: "CAIPIRINHA",
+    category: "Classic Cocktails",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["½ oz Simple Syrup"],
+    mixerHints: ["Balances the funk of the spirit"],
+    spirit: "2 oz Cachaça",
+    spiritOptions: ["2 oz Cachaça", "2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "2 oz Havana Rum"],
+    method: "Shake & Dump Pour",
+    methodOptions: ["Stir", "Shake & Strain", "Build-Pour", "Shake & Dump Pour"],
+    garnish: "",
+    garnishOptions: [],
+    ice: "Cubed (from tin)",
+    iceOptions: ["Cubed (from tin)", "Big Rock", "No ice", "Collins block"],
+  },
+  {
+    id: "gimlet",
+    name: "GIMLET",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["½ oz Simple Syrup", "¾ oz Lime Juice"],
+    mixerHints: ["Just enough to take the edge off the tartness", "The sour that keeps it crisp and clean"],
+    spirit: "2 oz Bombay 1er Cru",
+    spiritOptions: ["2 oz Bombay 1er Cru", "2 oz Dickel 8 Yr", "1½ oz Cazadores Silver", "1½ oz Ketel One"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "",
+    garnishOptions: [],
+    ice: "No ice",
+  },
+  {
+    id: "paper-plane",
+    name: "PAPER PLANE",
+    category: "Classic Cocktails",
+    glass: "Elegant coupette",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz Aperol", "¾ oz Amaro Nonino", "¾ oz Lemon Juice"],
+    mixerHints: ["The bright, slightly bitter orange note", "The herbal bittersweet counterweight", "Ties all four equal parts together"],
+    spirit: "¾ oz Dickel 8 Yr",
+    spiritOptions: ["¾ oz Dickel 8 Yr", "¾ oz Cazadores Silver", "¾ oz Bombay 1er Cru", "¾ oz Ketel One"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Pour", "Shake & Strain"],
+    garnish: "Orange peel on rim",
+    garnishOptions: ["Orange peel on rim", "Lemon twist", "3 coffee beans", "Lime wedge"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  // TELEFERIC ORIGINALS
+  {
+    id: "ibiza-gt",
+    name: "IBIZA G&T",
+    category: "G&Ts",
+    glass: "24oz wine glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "24oz wine glass", "12oz Hi-Ball"],
+    silverDust: true,
+    mixers: ["1 Tonic (on the side)"],
+    mixerHints: ["Poured on the side so the guest sees the color change"],
+    spirit: "2 oz Bombay Dry (infused with Butterfly Pea tea)",
+    spiritOptions: ["2 oz Bombay Dry (infused with Butterfly Pea tea)", "2 oz Nordes Gin", "2 oz Bombay 1er Cru", "1½ oz Cazadores Silver"],
+    method: "Build-Pour",
+    methodOptions: ["Stir", "Build-Pour", "Shake & Strain", "Build-Stir"],
+    garnish: "1 Kaffir lime leaf, 3 Juniper Berries, 1 Orange peel",
+    garnishOptions: ["1 Kaffir lime leaf, 3 Juniper Berries, 1 Orange peel", "3 Juniper berries, 1 Grapefruit wedge, 1 Rosemary spring", "Lemon twist", "Orange peel"],
+    ice: "Collins blocks",
+    iceOptions: ["Collins blocks", "Big Rock", "Cubed", "No ice"],
+  },
+  {
+    id: "catalan-gt",
+    name: "CATALAN G&T",
+    category: "G&Ts",
+    glass: "24oz wine glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "24oz wine glass", "12oz Hi-Ball"],
+    mixers: ["1 Tonic"],
+    mixerHints: ["Lengthens the spirit and adds effervescence — poured gently down the spoon"],
+    spirit: "2 oz Bombay 1er Cru",
+    spiritOptions: ["2 oz Bombay 1er Cru", "2 oz Nordes Gin", "2 oz Bombay Dry", "1½ oz Cazadores Silver"],
+    method: "Build-Stir",
+    methodOptions: ["Shake & Strain", "Build-Pour", "Build-Stir", "Stir"],
+    garnish: "3 Juniper berries, 1 Grapefruit wedge, 1 Rosemary sprig",
+    garnishOptions: ["3 Juniper berries, 1 Grapefruit wedge, 1 Rosemary sprig", "1 Kaffir lime leaf, 3 Juniper Berries, 1 Orange peel", "Orange peel", "Lime wedge"],
+    ice: "Collins block",
+    iceOptions: ["Collins block", "Big Rock", "Cubed", "No ice"],
+  },
+  {
+    id: "galician-gt",
+    name: "GALICIAN G&T",
+    category: "G&Ts",
+    glass: "24oz wine glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "24oz wine glass", "12oz Hi-Ball"],
+    mixers: ["1 Tonic"],
+    mixerHints: ["Lengthens the spirit — the color underneath turns blue before it's poured"],
+    spirit: "2 oz Nordes Gin",
+    spiritOptions: ["2 oz Nordes Gin", "2 oz Bombay 1er Cru", "2 oz Bombay Dry", "1½ oz Cazadores Silver"],
+    method: "Build-Stir",
+    methodOptions: ["Shake & Strain", "Build-Pour", "Build-Stir", "Stir"],
+    garnish: "3 Cardamom seeds, 1 Lemon peel, 1 Bay leaf",
+    garnishOptions: ["3 Cardamom seeds, 1 Lemon peel, 1 Bay leaf", "3 Juniper berries, 1 Grapefruit wedge, 1 Rosemary sprig", "Orange peel", "Lime wheel"],
+    ice: "Collins block",
+    iceOptions: ["Collins block", "Big Rock", "Cubed", "No ice"],
+    blueIce: true,
+  },
+  {
+    id: "rebujito-spritz",
+    name: "REBUJITO SPRITZ",
+    category: "Lower Proof",
+    glass: "20oz wine glass",
+    glassOptions: ["Nick & Nora", "20oz wine glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["4 oz Sparkling Wine", "4 oz Sprite"],
+    mixerHints: ["Adds body and a gentle fizz", "Lightens and sweetens the whole thing"],
+    spirit: "2 oz 🟪🟩 Premix",
+    spiritOptions: ["2 oz 🟪🟩 Premix", "2 oz 🟧 Premix", "2 oz 🟥🟦 Premix", "2 oz 🟨 Premix"],
+    method: "Build-Stir",
+    methodOptions: ["Shake & Strain", "Build-Stir", "Build-Pour", "Stir"],
+    garnish: "Mint bouquet, Dehydrated lime, 2 x 5in Wheat Straws",
+    garnishOptions: ["Mint bouquet, Dehydrated lime, 2 x 5in Wheat Straws", "Orange peel", "3 coffee beans", "Lime wedge"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "sangria-teleferic",
+    name: "SANGRIA TELEFÈRIC",
+    category: "Lower Proof",
+    glass: "20oz wine glass",
+    glassOptions: ["Nick & Nora", "20oz wine glass", "7oz Coupette", "Small Mason Jar"],
+    mixers: [],
+    mixerHints: [],
+    spirit: "10 oz Pre-batched Sangria Telefèric (Red Wine Blend + Triple Sec + Brandy + Gin)",
+    spiritOptions: ["10 oz Pre-batched Sangria Telefèric (Red Wine Blend + Triple Sec + Brandy + Gin)", "10 oz Spicy Sangria Premix", "4 oz Barceloneta Premix + 6 oz Sparkling Wine", "2 oz Havana Rum"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build-Stir", "Build", "Stir"],
+    garnish: "3 Fruit salad slices, 1 Mint spring, 1 Cinnamon stick",
+    garnishOptions: ["3 Fruit salad slices, 1 Mint spring, 1 Cinnamon stick", "1 Orange slice, 2 Blueberries, 1 Rosemary sprig", "1 Dehydrated lemon, 1 Thai chile red", "Mint bouquet"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "tourist",
+    name: "THE TOURIST",
+    category: "Telefèric Classics",
+    glass: "12oz Hi-Ball",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz 1:1 Honey", "¾ oz Lime Juice", "2 oz Lychee Juice"],
+    mixerHints: ["Rounds out the tartness without refined sugar", "Keeps the tropical sweetness in check", "A tropical sweetness that defines the drink's character"],
+    spirit: "2 oz Cazadores Blanco Tequila",
+    spiritOptions: ["2 oz Cazadores Blanco Tequila", "2 oz Havana Rum", "2 oz Ketel One", "2 oz Bombay 1er Cru"],
+    method: "Shake & Strain",
+    methodOptions: ["Shake & Strain", "Shake & Double Strain", "Stir", "Build-Stir"],
+    garnish: "Mint sprig bouquet, Icing sugar, 2 x 7\" Wheat Straws",
+    garnishOptions: ["Mint sprig bouquet, Icing sugar, 2 x 7\" Wheat Straws", "Orange peel", "Lime wedge", "3 coffee beans"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "carajillo",
+    name: "CARAJILLO",
+    category: "Telefèric Classics",
+    glass: "7oz New look Coupette",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz New look Coupette", "12oz Hi-Ball"],
+    mixers: ["1 Espresso Shot"],
+    mixerHints: ["The fresh hit that gives the drink its energy"],
+    spirit: "2 oz 🟥🟦 Premix",
+    spiritOptions: ["2 oz 🟥🟦 Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "1¼ oz Ketel One Cold Brew + ½ oz Licor 43 + ¼ oz Coffee Liq + 4 Chocolate Bitters",
+    premixOptions: [
+      "1¼ oz Ketel One Cold Brew + ½ oz Licor 43 + ¼ oz Coffee Liq + 4 Chocolate Bitters",
+      "1 oz Ketel One Cold Brew + ½ oz Licor 43 + ¼ oz Coffee Liq + 2 Chocolate Bitters",
+      "1¼ oz Ketel One Cold Brew + ¼ oz Coffee Liq + ½ oz Simple Syrup + 4 Chocolate Bitters",
+      "1 oz Ketel One + ½ oz Licor 43 + ½ oz Coffee Liq + 4 Chocolate Bitters"
+    ],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build & Churn", "Shake & Strain"],
+    garnish: "3 Coffee beans",
+    garnishOptions: ["3 Coffee beans", "Orange peel", "Lemon twist", "Lime wedge"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "gothic-mojito",
+    name: "GOTHIC MOJITO",
+    category: "Telefèric Classics",
+    glass: "12oz Hi-Ball",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["1 oz Fruit Purée (Strawberry/Passion Fruit/Mango)", "1½ oz Lime Juice", "1½ oz Simple Syrup", "10 Mint Leaves"],
+    mixerHints: ["Optional — choose a fruit purée for an extra layer of flavor and color", "Sour backbone — builds from the bottom", "Sweetness to balance the lime", "Churned through the drink, not just a garnish"],
+    spirit: "2 oz Havana Rum",
+    spiritOptions: ["2 oz Havana Rum", "2 oz Cazadores Blanco", "2 oz Ketel One", "2 oz Bombay 1er Cru"],
+    method: "Build & Churn",
+    methodOptions: ["Shake & Strain", "Build & Churn", "Build-Stir", "Stir"],
+    garnish: "Soda top, Dry ice with tea strainer, 2 x 7\" Wheat Straws",
+    garnishOptions: ["Soda top, Dry ice with tea strainer, 2 x 7\" Wheat Straws", "Dry ice with tea strainer only", "Mint bouquet, Lime wedge", "Orange peel"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "la-flaca",
+    name: "LA FLACA",
+    category: "Telefèric Classics",
+    glass: "8oz Coupette",
+    glassOptions: ["Nick & Nora", "Rocks glass", "8oz Coupette", "7oz New look Coupette"],
+    mixers: ["½ oz Agave Syrup", "¾ oz Lime Juice", "¾ oz Prickly Pear Purée"],
+    mixerHints: ["Stays true to the agave-based spirit", "Cuts through the smokiness of the spirit", "Gives the vibrant color and subtle sweetness"],
+    spirit: "2 oz 🟪 Premix",
+    spiritOptions: ["2 oz 🟪 Premix", "2 oz ⬛ Premix", "2 oz 🟥🟦 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "1¼ oz Ilegal Mezcal + ½ oz Ancho Reyes Verde + ¼ oz Patron Silver",
+    premixOptions: [
+      "1¼ oz Ilegal Mezcal + ½ oz Ancho Reyes Verde + ¼ oz Patron Silver",
+      "1 oz Ilegal Mezcal + 1 oz Patron Silver + ¼ oz Ancho Reyes",
+      "1½ oz Ilegal Mezcal + ½ oz Patron Silver",
+      "1 oz Ilegal Mezcal + ½ oz Ancho Reyes Verde + ½ oz Cazadores Silver"
+    ],
+    method: "Shake & Double Strain",
+        methodOptions: ["Shake & Double Strain", "Stir", "Build", "Shake & Strain"],
+    rim: "Half Tajin rim (outside only)",
+    rimOptions: ["Half Tajin rim (outside only)", "Half salt rim", "No rim"],
+    garnish: "Rosemary bubble",
+    garnishConfirm: true,
+    garnishOptions: ["Rosemary bubble", "Half salt rim & Lime wedge", "Orange peel", "3 Angostura hearts"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "bryans-legacy",
+    name: "BRYAN'S LEGACY",
+    category: "Telefèric Classics",
+    glass: "Rocks glass",
+    glassOptions: ["Nick & Nora", "Rocks glass", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: [],
+    mixerHints: [],
+    spirit: "3 oz ⬛ Premix",
+    spiritOptions: ["3 oz ⬛ Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "1 oz Dickel Rye + 1 oz Brandy Solera + ¼ oz PX Alvear + ¼ oz Red Sweet Vermouth + ½ oz Water + 4 dashes Angostura",
+    premixOptions: [
+      "1 oz Dickel Rye + 1 oz Brandy Solera + ¼ oz PX Alvear + ¼ oz Red Sweet Vermouth + ½ oz Water + 4 dashes Angostura",
+      "1 oz Dickel Rye + 1 oz Brandy Solera + ½ oz PX Alvear + 2 dashes Angostura",
+      "1½ oz Dickel Rye + ½ oz Brandy Solera + ¼ oz Sweet Vermouth + 4 dashes Angostura",
+      "1 oz Dickel 8 Yr + 1 oz Brandy Solera + ¼ oz PX Alvear + ½ oz Water"
+    ],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build-Stir", "Build", "Stir"],
+    garnish: "1 Maraschino cherry, Smoke top",
+    garnishOptions: ["1 Maraschino cherry, Smoke top", "Orange twist + 2 maraschino cherries", "Orange peel", "Lemon twist"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "No ice", "Collins block"],
+  },
+  {
+    id: "pine-apple-inception",
+    name: "PINE-APPLE INCEPTION",
+    category: "Seasonal Cocktails",
+    glass: "Copper Pineapple",
+    glassOptions: ["Rocks glass", "Copper Pineapple", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["2 dashes Angostura", "1 oz Pine Nut Orgeat", "1 oz Lime Juice", "2 oz Spiced Apple Curd"],
+    mixerHints: ["Nutty sweetness — unique to this drink", "Keeps the sweetness from being too heavy", "The creamy, orchard-fruit backbone", "Just a couple dashes to add depth"],
+    spirit: "2 oz Ketel One Vodka",
+    spiritOptions: ["2 oz Ketel One Vodka", "2 oz Cazadores Silver", "2 oz Bombay 1er Cru", "2 oz Havana Rum"],
+    method: "Shake & Dirty Pour",
+    methodOptions: ["Shake & Strain", "Shake & Dirty Pour", "Build & Churn", "Build-Stir"],
+    garnish: "Metal straw",
+    garnishOptions: ["Metal straw", "Orange peel", "Mint bouquet", "3 coffee beans"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "fancy-a-carrot",
+    name: "FANCY A CARROT?",
+    category: "Seasonal Cocktails",
+    glass: "Rocks glass (Black base + Black sand)",
+    glassOptions: ["Nick & Nora", "Rocks glass (Black base + Black sand)", "7oz Coupette", "12oz Hi-Ball"],
+    mixers: ["½ oz Oregano-Spicy Agave", "2 oz Carrot Cordial"],
+    mixerHints: ["Savory heat that plays against the sweetness", "The unexpected star — earthy, sweet and vegetal"],
+    spirit: "2 oz 🟩 Premix",
+    spiritOptions: ["2 oz 🟩 Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟥🟦 Premix"],
+    premixComposition: "1¾ oz Fig Leaf-Infused Patrón Repo + ¼ oz Amontillado Sherry",
+    premixOptions: [
+      "1¾ oz Fig Leaf-Infused Patrón Repo + ¼ oz Amontillado Sherry",
+      "1½ oz Fig Leaf-Infused Patrón Repo + ½ oz Amontillado Sherry",
+      "1¾ oz Patrón Reposado + ¼ oz Fino Sherry",
+      "2 oz Fig Leaf-Infused Patrón Repo + ¼ oz PX Alvear"
+    ],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "Curly parsley, Mini clothespin",
+    garnishOptions: ["Curly parsley, Mini clothespin", "Orange peel", "Lime wedge", "3 coffee beans"],
+    ice: "Big Rock",
+    iceOptions: ["Big Rock", "Cubed", "Collins block", "No ice"],
+  },
+
+  // ── LOWER PROOF (additional) ────────────────────────────────────────────────
+  {
+    id: "sangria-barceloneta",
+    name: "SANGRIA BARCELONETA",
+    category: "Lower Proof",
+    glass: "20oz wine glass",
+    glassOptions: ["Nick & Nora", "20oz wine glass", "Small Mason Jar", "12oz Hi-Ball"],
+    mixers: ["6 oz Sparkling Wine"],
+    mixerHints: ["Effervescent — added after the premix to keep the bubbles"],
+    spirit: "4 oz 🟧 Premix",
+    spiritOptions: ["4 oz 🟧 Premix", "10 oz Sangria Telefèric Premix", "10 oz Spicy Sangria Premix", "5 oz Rebujito Premix"],
+    premixComposition: "Honey + Prickly Pear Purée + Water + Simple Syrup + Lemon Juice",
+    premixOptions: [
+      "Honey + Prickly Pear Purée + Water + Simple Syrup + Lemon Juice",
+      "Prickly Pear Purée + Agave Syrup + Lime Juice + Water",
+      "Honey + Prickly Pear Purée + Agave Syrup + Lemon Juice",
+      "Prickly Pear Purée + Simple Syrup + Water + Lime Juice"
+    ],
+    method: "Build-Stir",
+    methodOptions: ["Build", "Build-Stir", "Shake & Strain", "Build & Churn"],
+    garnish: "1 Orange slice, 1 Raspberry, 2 Blueberries, 1 Rosemary sprig",
+    garnishOptions: ["1 Orange slice, 1 Raspberry, 2 Blueberries, 1 Rosemary sprig", "3 Fruit salad slices, 1 Mint spring, 1 Cinnamon stick", "1 Dehydrated lemon, 1 Thai chile red", "Mint bouquet, Dehydrated lime"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "spicy-sangria",
+    name: "SPICY SANGRIA",
+    category: "Lower Proof",
+    glass: "20oz wine glass",
+    glassOptions: ["Nick & Nora", "20oz wine glass", "Small Mason Jar", "12oz Hi-Ball"],
+    mixers: ["½ oz Lime Juice"],
+    mixerHints: ["Adds a sharp citrus edge to cut through the sweetness"],
+    spirit: "10 oz Spicy Sangria Premix",
+    spiritOptions: ["10 oz Spicy Sangria Premix", "10 oz Sangria Telefèric Premix", "4 oz Barceloneta Premix + 6 oz Sparkling Wine", "5 oz Rebujito Premix"],
+    method: "Build-Stir",
+    methodOptions: ["Build", "Build-Stir", "Shake & Strain", "Build & Churn"],
+    garnish: "1 Dehydrated lemon, 1 Thai chile red",
+    garnishOptions: ["1 Dehydrated lemon, 1 Thai chile red", "3 Fruit salad slices, 1 Mint spring, 1 Cinnamon stick", "1 Orange slice, 1 Raspberry, 2 Blueberries, 1 Rosemary sprig", "Mint bouquet, Dehydrated lime"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "sangria-flight",
+    name: "SANGRIA FLIGHT",
+    category: "Lower Proof",
+    glass: "Small Mason Jar",
+    glassOptions: ["20oz wine glass", "Small Mason Jar", "12oz Hi-Ball", "Rocks glass"],
+    mixers: ["Same garnish as individual sangrias"],
+    mixerHints: ["Each jar mirrors its full-size counterpart — garnish matches the individual"],
+    spirit: "Spicy: 4.5 oz | Telefèric: 5 oz | Barceloneta: 2 oz premix + 3 oz Sparkling Wine",
+    spiritOptions: ["Spicy: 4.5 oz | Telefèric: 5 oz | Barceloneta: 2 oz premix + 3 oz Sparkling Wine", "All three: 5 oz each poured equally", "Spicy: 5 oz | Telefèric: 4 oz | Barceloneta: 3 oz sparkling", "10 oz Sangria Telefèric split three ways"],
+    method: "Build-Stir",
+    methodOptions: ["Build", "Build-Stir", "Shake & Strain", "Build & Churn"],
+    garnish: "3 Straws, same garnish as regular sangrias per jar",
+    garnishOptions: ["3 Straws, same garnish as regular sangrias per jar", "1 Cinnamon stick, mint spring", "Orange peel in each jar", "Dehydrated fruit slice per jar"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+
+  // ── TELEFÈRIC CLASSICS (additional) ─────────────────────────────────────────
+  {
+    id: "red-velvet",
+    name: "RED VELVET",
+    category: "Seasonal Cocktails",
+    glass: "Elegant Coupette",
+    glassOptions: ["Nick & Nora", "Elegant Coupette", "Rocks glass", "12oz Hi-Ball"],
+    mixers: [],
+    mixerHints: [],
+    spirit: "3 oz 🟥 Premix",
+    spiritOptions: ["3 oz 🟥 Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "Dried Plum-Infused Dickel Rye (milk punch base)",
+    premixOptions: [
+      "Dried Plum-Infused Dickel Rye (milk punch base)",
+      "Cherry-Infused Dewar's Whiskey + Almond Syrup",
+      "Dried Plum-Infused Dickel Rye + Maraschino Liq",
+      "Dried Plum-Infused Dickel Rye + Red Vermut"
+    ],
+    method: "Stir & Strain",
+    methodOptions: ["Shake & Strain", "Stir & Strain", "Build-Stir", "Build & Churn"],
+    garnish: "2 sprays of cherry bitters (table finish)",
+    garnishConfirm: true,
+    garnishOptions: [],
+    ice: "Ice Sphere",
+    iceOptions: ["Ice Sphere", "Big Rock", "Cubed", "No ice"],
+  },
+  {
+    id: "pisco-n-cheese",
+    name: "PISCO 'N' CHEESE",
+    category: "Seasonal Cocktails",
+    glass: "Black Metal Coupette",
+    glassOptions: ["Elegant Coupette", "Black Metal Coupette", "Nick & Nora", "Rocks glass"],
+    mixers: ["¾ oz Lime Juice", "¾ oz Egg White", "2 oz Quince Cordial"],
+    mixerHints: ["Cuts through the richness of the cheese-washed spirit", "Creates the creamy foam and body", "Fruity sweetness — quince is the Spanish pantry staple"],
+    spirit: "2 oz 🟨 Premix",
+    spiritOptions: ["2 oz 🟨 Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "1¾ oz Pisco + ¼ oz Mezcal Ilegal (Idiazábal Cheese-Washed)",
+    premixOptions: [
+      "1¾ oz Pisco + ¼ oz Mezcal Ilegal (Idiazábal Cheese-Washed)",
+      "2 oz Pisco (Idiazábal Cheese-Washed)",
+      "1½ oz Pisco + ¼ oz Mezcal Ilegal + ¼ oz Amontillado Sherry",
+      "1¾ oz Pisco + ¼ oz Patron Silver (Idiazábal Cheese-Washed)"
+    ],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir & Strain", "Build-Stir", "Shake & Strain"],
+    garnish: "3 Angostura droplets, Idiazabal cube, Black fork",
+    garnishOptions: ["3 Angostura droplets, Idiazabal cube, Black fork", "Orange peel", "Cherry bitters mist", "3 coffee beans"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "la-paloma",
+    name: "LA PALOMA",
+    category: "Seasonal Cocktails",
+    glass: "12oz Hi-ball",
+    glassOptions: ["Rocks glass", "12oz Hi-ball", "20oz wine glass", "Mule jug"],
+    mixers: ["½ oz Lime Juice", "½ oz Agave"],
+    mixerHints: ["Tartness to balance the mezcal", "Keeps it true to the agave-based spirit"],
+    postPremixMixers: ["½ Whole Grapefruit (juiced)"],
+    postPremixMixerHints: ["Freshly juiced at the bar — added after the premix, the star of the drink"],
+    spirit: "2 oz 🟧 Premix",
+    spiritOptions: ["2 oz 🟧 Premix", "2 oz ⬛ Premix", "2 oz 🟪 Premix", "2 oz 🟩 Premix"],
+    premixComposition: "1½ oz Ilegal Mezcal Infused Rosemary + ¼ oz Red Sweet Vermouth + ¼ oz Aperol",
+    premixOptions: [
+      "1½ oz Ilegal Mezcal Infused Rosemary + ¼ oz Red Sweet Vermouth + ¼ oz Aperol",
+      "1½ oz Ilegal Mezcal + ½ oz Aperol + ¼ oz Red Sweet Vermouth",
+      "2 oz Ilegal Mezcal Infused Rosemary + ¼ oz Aperol",
+      "1½ oz Ilegal Mezcal + ¼ oz Aperol + ¼ oz Campari"
+    ],
+    method: "Build & Churn",
+    methodOptions: ["Shake & Strain", "Build & Churn", "Build-Stir", "Shake & Dump Pour"],
+    rim: "Half salt rim",
+    rimOptions: ["Half salt rim", "Half Tajin rim", "No rim"],
+    garnish: "Grapefruit wedge, 2 x 7in Wheat Straws",
+    garnishOptions: ["Grapefruit wedge, 2 x 7in Wheat Straws", "Half salt rim & Lime wedge", "Tajin Rim, Rosemary bubble", "Orange peel"],
+    ice: "¾ Cubed",
+    iceOptions: ["¾ Cubed", "Cubed", "Big Rock", "No ice"],
+  },
+
+  // ── ZERO PROOF ───────────────────────────────────────────────────────────────
+  {
+    id: "lychees-and-cream",
+    name: "LYCHEE'S & CREAM",
+    category: "Zero Proof",
+    glass: "Hurricane glass",
+    glassOptions: ["Hurricane glass", "12oz Hi-Ball", "20oz wine glass", "Rocks glass"],
+    muddle: "3-5 Raspberries (in the tin)",
+    muddleOptions: ["3-5 Raspberries (in the tin)", "4 Lime Wedges (in the glass)", "3 Raspberries (in the glass)", "2 Raspberries (in the tin)"],
+    mixers: ["1 oz 1:1 Honey Syrup", "1 oz Lime Juice", "1 oz Kaffir Yogurt", "3 oz Lychee Juice"],
+    mixerHints: ["Rounds out the tartness — natural sweetener", "Brings the sour", "Creamy texture and a subtle herbal note", "The tropical sweet base"],
+    spirit: "No spirit — zero proof",
+    spiritOptions: ["No spirit — zero proof", "1 oz Seedlip Spice", "2 oz Seedlip Garden", "1 oz Lyre's Non-Alcoholic Spirit"],
+    method: "Shake & Strain",
+    methodOptions: ["Build & Churn", "Shake & Strain", "Build-Stir", "Stir & Strain"],
+    garnish: "Mint sprig bouquet, Icing sugar, 2 x 7in Wheat Straws",
+    garnishOptions: ["Mint sprig bouquet, Icing sugar, 2 x 7in Wheat Straws", "Orange peel", "Orange wedge", "Ginger foam, Tajin"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "sierra-sunset",
+    name: "SIERRA SUNSET",
+    category: "Zero Proof",
+    glass: "10oz Hi-Ball",
+    glassOptions: ["10oz Hi-Ball", "12oz Hi-Ball", "Hurricane glass", "Rocks glass"],
+    mixers: ["0.5 oz Rosemary Cordial", "1 Whole Orange (juiced)", "2.5 oz 0% Proof Aperitive"],
+    mixerHints: ["Herbal sweetness that bridges the citrus and bittersweet", "Freshly juiced at the bar — the backbone of the drink", "The non-alcoholic bitter base — gives the sunset color"],
+    spirit: "No spirit — zero proof",
+    spiritOptions: ["No spirit — zero proof", "2 oz Seedlip Spice", "2 oz Lyre's Non-Alcoholic Spirit", "1 oz Seedlip Garden"],
+    method: "Build & Churn",
+    methodOptions: ["Shake & Strain", "Build & Churn", "Build-Stir", "Stir"],
+    garnish: "Orange wedge, Red LED Coaster",
+    garnishOptions: ["Orange wedge, Red LED Coaster", "Mint sprig bouquet, Icing sugar", "Ginger foam, Tajin", "Orange peel"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "mule-picon",
+    name: "MULE PICÓN",
+    category: "Zero Proof",
+    glass: "Mule jug",
+    glassOptions: ["Mule jug", "12oz Hi-Ball", "Rocks glass", "Hurricane glass"],
+    mixers: ["1 oz Mango Purée", "1 oz Lime Juice", "4 dashes Spicy Bitters", "Top-up Ginger Beer"],
+    mixerHints: ["Tropical sweetness and color", "Balances the sweetness and adds brightness", "The spice hit — brings the heat", "Added last — keeps the carbonation"],
+    spirit: "No spirit — zero proof",
+    spiritOptions: ["No spirit — zero proof", "2 oz Lyre's Non-Alcoholic Spirit", "2 oz Seedlip Garden", "1 oz Seedlip Spice 94"],
+    method: "Build & Churn",
+    methodOptions: ["Shake & Strain", "Build-Stir", "Build & Churn", "Stir"],
+    garnish: "Ginger Foam, Tajin powder sprinkled, Small Metal straw",
+    garnishOptions: ["Ginger Foam, Tajin powder sprinkled, Small Metal straw", "Orange wedge", "Mint sprig bouquet, Icing sugar", "Orange peel"],
+    ice: "¾ Cubed",
+    iceOptions: ["¾ Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+
+  // ── NEW CLASSICS ─────────────────────────────────────────────────────────────
+  {
+    id: "naked-and-famous",
+    name: "NAKED & FAMOUS",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz Yellow Chartreuse", "¾ oz Aperol", "¾ oz Lime Juice"],
+    mixerHints: ["Herbal and sweet — the Alpine element", "Bitter orange that brightens the whole drink", "The sour that ties the equal parts together"],
+    spirit: "¾ oz Mezcal Union",
+    spiritOptions: ["¾ oz Mezcal Union", "¾ oz Cazadores Silver", "¾ oz Bombay 1er Cru", "¾ oz Dickel 8 Yr"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "",
+    garnishOptions: [],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "daiquiri",
+    name: "DAIQUIRI",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz Lime Juice", "¾ oz Simple Syrup"],
+    mixerHints: ["The sour — keeps the rum honest", "Balances the tartness without hiding the spirit"],
+    spirit: "2 oz Havana Club",
+    spiritOptions: ["2 oz Havana Club", "2 oz Cazadores Silver", "2 oz Ketel One", "2 oz Bombay 1er Cru"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "",
+    garnishOptions: [],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "paloma-classic",
+    name: "PALOMA",
+    category: "Classic Cocktails",
+    glass: "12oz Hi-Ball",
+    glassOptions: ["Nick & Nora", "Rocks glass", "12oz Hi-Ball", "Mule jug"],
+    mixers: ["½ oz Agave Syrup", "½ oz Lime Juice", "Half grapefruit juiced", "Dash soda"],
+    mixerHints: ["Added last for effervescence", "Stays true to the agave-based spirit", "Keeps it tart and bright", "Freshly juiced — the backbone of the drink"],
+    spirit: "2 oz Cazadores Silver",
+    spiritOptions: ["2 oz Cazadores Silver", "2 oz Havana Club", "2 oz Ketel One", "2 oz Bombay 1er Cru"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build", "Build & Churn", "Stir"],
+    garnish: "Metal straw",
+    garnishOptions: ["Metal straw", "Lime wedge", "Orange peel", "Grapefruit wedge"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "french-75",
+    name: "FRENCH 75",
+    category: "Classic Cocktails",
+    glass: "Flute",
+    glassOptions: ["Flute", "Nick & Nora", "Elegant coupette", "20oz wine glass"],
+    mixers: ["¼ oz Lemon Juice", "¼ oz Simple Syrup", "Top Sparkling Wine"],
+    mixerHints: ["A small sour to lift the gin", "Just enough to balance the citrus", "Topped last — poured gently to keep the bubbles"],
+    spirit: "1 oz Bombay 1er Cru",
+    spiritOptions: ["1 oz Bombay 1er Cru", "1 oz Ketel One", "1 oz Cazadores Silver", "1 oz Dickel 8 Yr"],
+    method: "Shake & Strain, then Build",
+    methodOptions: ["Shake & Strain, then Build", "Stir", "Build", "Shake & Strain"],
+    garnish: "Lemon peel on the rim",
+    garnishOptions: ["Lemon peel on the rim", "Orange peel", "Lime wheel", "Cherry bottom"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "lemon-drop",
+    name: "LEMON DROP",
+    category: "Classic Cocktails",
+    glass: "Elegant coupette",
+    glassOptions: ["Nick & Nora", "Elegant coupette", "Rocks glass", "12oz Hi-Ball"],
+    mixers: ["½ oz Triple Sec", "½ oz Simple Syrup", "1 oz Lemon Juice"],
+    mixerHints: ["Adds citrus sweetness and body", "Keeps it from being too sharp", "The bold sour note that defines the drink"],
+    spirit: "2 oz Ketel One",
+    spiritOptions: ["2 oz Ketel One", "2 oz Cazadores Silver", "2 oz Bombay 1er Cru", "2 oz Havana Club"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "Lemon twist on the rim",
+    garnishOptions: ["Lemon twist on the rim", "Orange peel", "Lime wheel", "3 coffee beans"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "long-island-ice-tea",
+    name: "LONG ISLAND ICE TEA",
+    category: "Classic Cocktails",
+    glass: "12oz Hi-Ball",
+    glassOptions: ["Rocks glass", "12oz Hi-Ball", "20oz wine glass", "Mule jug"],
+    mixers: ["½ oz Cazadores Silver", "½ oz Havana Club", "½ oz Triple Sec", "½ oz Lemon Juice", "½ oz Simple Syrup", "Top Diet Coke"],
+    mixerHints: ["The tequila portion of the equal-parts base", "The rum portion", "Orange sweetness that links the spirits", "The sour backbone", "Just enough to balance the citrus", "Poured last over the back of a spoon to layer"],
+    spirit: "½ oz Ketel One",
+    spiritOptions: ["½ oz Ketel One", "1 oz Ketel One", "¾ oz Ketel One", "2 oz Ketel One"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build", "Build & Churn", "Stir"],
+    garnish: "Layered Coke",
+    garnishOptions: ["Layered Coke", "Lime wedge", "Orange peel", "Lemon twist"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "last-word",
+    name: "LAST WORD",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["¾ oz Green Chartreuse", "¾ oz Maraschino Luxardo", "¾ oz Lime Juice"],
+    mixerHints: ["The herbal powerhouse — equal to the spirit", "Cherry liqueur that softens the herbal bite", "The sour that ties all four equal parts together"],
+    spirit: "¾ oz Bombay 1er Cru",
+    spiritOptions: ["¾ oz Bombay 1er Cru", "¾ oz Mezcal Union", "¾ oz Cazadores Silver", "¾ oz Ketel One"],
+    method: "Shake & Double Strain",
+    methodOptions: ["Shake & Double Strain", "Stir", "Build-Stir", "Shake & Strain"],
+    garnish: "Cherry bottom",
+    garnishOptions: ["Cherry bottom", "Orange peel", "Lemon twist", "N/A"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "manhattan",
+    name: "MANHATTAN",
+    category: "Classic Cocktails",
+    glass: "Nick & Nora",
+    glassOptions: ["Nick & Nora", "Rocks glass", "Elegant coupette", "12oz Hi-Ball"],
+    mixers: ["1 oz Sweet Vermouth", "6-8 dashes Angostura Bitters"],
+    mixerHints: ["The sweet backbone that rounds the rye", "A generous aromatic addition — more than most stirred drinks"],
+    spirit: "2 oz Dickel Rye",
+    spiritOptions: ["2 oz Dickel Rye", "2 oz Dickel 8 Yr", "2 oz Havana Club", "2 oz Bombay 1er Cru"],
+    method: "Stir",
+    methodOptions: ["Shake & Strain", "Stir", "Build", "Build & Churn"],
+    garnish: "Discarded Orange peel & Cherry",
+    garnishOptions: ["Discarded Orange peel & Cherry", "Lemon twist", "3 coffee beans", "Orange twist & 2 cherries"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "moscow-mule",
+    name: "MOSCOW MULE",
+    category: "Classic Cocktails",
+    glass: "Mule jug",
+    glassOptions: ["Mule jug", "12oz Hi-Ball", "Rocks glass", "20oz wine glass"],
+    mixers: ["½ oz Simple Syrup", "1 oz Fresh Lime", "3 oz Ginger Beer (top)"],
+    mixerHints: ["A touch of sweetness to balance the lime", "Freshly squeezed — the citrus backbone", "Topped last — gives it the kick and fizz"],
+    spirit: "2 oz Ketel One",
+    spiritOptions: ["2 oz Ketel One", "2 oz Cazadores Silver", "2 oz Havana Club", "2 oz Bombay 1er Cru"],
+    method: "Build & Churn",
+    methodOptions: ["Shake & Strain", "Build & Churn", "Stir", "Build"],
+    garnish: "Mint tip, Dehydrated lime & Angostura bitters, 2 straws",
+    garnishOptions: ["Mint tip, Dehydrated lime & Angostura bitters, 2 straws", "Lime wedge", "Orange peel", "Mint bouquet"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "mimosa",
+    name: "MIMOSA",
+    category: "Classic Cocktails",
+    glass: "Flute",
+    glassOptions: ["Flute", "Nick & Nora", "Elegant coupette", "20oz wine glass"],
+    mixers: ["2 oz Orange Juice", "Top Sparkling Wine"],
+    mixerHints: ["Poured first — the base", "Poured gently over the back of a spoon to float on top"],
+    spirit: "No spirit — zero proof base",
+    spiritOptions: ["No spirit — zero proof base", "1 oz Bombay 1er Cru", "1 oz Ketel One", "1 oz St Germain"],
+    method: "Build in tin, Stir and pour",
+    methodOptions: ["Build in tin, Stir and pour", "Shake & Strain", "Stir", "Build"],
+    garnish: "Fruit salad orange on rim",
+    garnishOptions: ["Fruit salad orange on rim", "Lemon twist", "Orange peel", "Mint tip"],
+    ice: "No ice",
+    iceOptions: ["No ice", "Big Rock", "Cubed", "Collins block"],
+  },
+  {
+    id: "aperol-spritz",
+    name: "APEROL SPRITZ",
+    category: "Classic Cocktails",
+    glass: "20oz wine glass",
+    glassOptions: ["20oz wine glass", "Nick & Nora", "Elegant coupette", "Rocks glass"],
+    mixers: ["Top Sparkling Wine", "Dash soda"],
+    mixerHints: ["A small splash to lift and lengthen", "Poured over the Aperol first"],
+    spirit: "2 oz Aperol",
+    spiritOptions: ["2 oz Aperol", "2 oz Campari", "2 oz St Germain", "2 oz Sweet Vermouth"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build", "Build & Churn", "Stir"],
+    garnish: "Half sliced orange",
+    garnishOptions: ["Half sliced orange", "Orange peel", "Lemon twist", "Lime wheel"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "hugo-spritz",
+    name: "HUGO SPRITZ",
+    category: "Classic Cocktails",
+    glass: "20oz wine glass",
+    glassOptions: ["20oz wine glass", "Nick & Nora", "Elegant coupette", "Rocks glass"],
+    mixers: ["8 Mint leaves", "Top Sparkling Wine", "Dash soda"],
+    mixerHints: ["A small splash to lift it", "Added in the glass — part mixer, part garnish", "Poured over the St Germain first"],
+    spirit: "2 oz St Germain",
+    spiritOptions: ["2 oz St Germain", "2 oz Aperol", "2 oz Campari", "2 oz Sweet Vermouth"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build", "Build & Churn", "Stir"],
+    garnish: "Mint tip",
+    garnishOptions: ["Mint tip", "Orange peel", "Lime wheel", "Half sliced orange"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+  {
+    id: "tinto-de-verano",
+    name: "TINTO DE VERANO",
+    category: "Classic Cocktails",
+    glass: "20oz wine glass",
+    glassOptions: ["20oz wine glass", "Nick & Nora", "12oz Hi-Ball", "Rocks glass"],
+    mixers: ["1 oz Rosemary Lemonade", "4 oz Sprite"],
+    mixerHints: ["The herbal-citrus touch that makes it distinctly Spanish", "The effervescent lightener"],
+    spirit: "4 oz Atalaya Red Wine",
+    spiritOptions: ["4 oz Atalaya Red Wine", "4 oz Rosé Wine", "4 oz White Wine", "4 oz Sangria Premix"],
+    method: "Build",
+    methodOptions: ["Shake & Strain", "Build", "Build & Churn", "Stir"],
+    garnish: "3x Fruit salad & 1 Mint tip",
+    garnishOptions: ["3x Fruit salad & 1 Mint tip", "Orange peel", "Half sliced orange", "Lime wheel"],
+    ice: "Cubed",
+    iceOptions: ["Cubed", "Big Rock", "Collins block", "No ice"],
+  },
+
+];
+
+// ── Glass SVGs ────────────────────────────────────────────────────────────────
+const GLASS_SVGS = {
+  "Rocks glass": {desc:"Short & wide", svg:`<svg viewBox="0 0 80 80" width="60" height="60"><path d="M8,28 L13,68 L67,68 L72,28 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="8" y1="28" x2="72" y2="28" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "Nick & Nora": {desc:"Elegant V-bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M10,15 Q40,70 40,70 Q40,70 70,15 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="40" y1="70" x2="40" y2="95" stroke="#a0c4d8" stroke-width="2"/><line x1="25" y1="95" x2="55" y2="95" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "7oz Coupette": {desc:"Wide shallow bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M6,22 C6,22 18,52 40,58 C62,52 74,22 74,22 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="6" y1="22" x2="74" y2="22" stroke="#a0c4d8" stroke-width="2"/><line x1="40" y1="58" x2="40" y2="92" stroke="#a0c4d8" stroke-width="1.5"/><ellipse cx="40" cy="92" rx="16" ry="3.5" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="1.5" opacity="0.8"/></svg>`},
+  "8oz Coupette": {desc:"Wide shallow bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M6,22 C6,22 18,52 40,58 C62,52 74,22 74,22 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="6" y1="22" x2="74" y2="22" stroke="#a0c4d8" stroke-width="2"/><line x1="40" y1="58" x2="40" y2="92" stroke="#a0c4d8" stroke-width="1.5"/><ellipse cx="40" cy="92" rx="16" ry="3.5" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="1.5" opacity="0.8"/></svg>`},
+  "7oz New look Coupette": {desc:"Wide shallow bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M6,22 C6,22 18,52 40,58 C62,52 74,22 74,22 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="6" y1="22" x2="74" y2="22" stroke="#a0c4d8" stroke-width="2"/><line x1="40" y1="58" x2="40" y2="92" stroke="#a0c4d8" stroke-width="1.5"/><ellipse cx="40" cy="92" rx="16" ry="3.5" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="1.5" opacity="0.8"/></svg>`},
+  "Elegant coupette": {desc:"Wide shallow bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M6,22 C6,22 18,52 40,58 C62,52 74,22 74,22 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="6" y1="22" x2="74" y2="22" stroke="#a0c4d8" stroke-width="2"/><line x1="40" y1="58" x2="40" y2="92" stroke="#a0c4d8" stroke-width="1.5"/><ellipse cx="40" cy="92" rx="16" ry="3.5" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="1.5" opacity="0.8"/></svg>`},
+  "Elegant Coupette": {desc:"Wide shallow bowl on stem", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M6,22 C6,22 18,52 40,58 C62,52 74,22 74,22 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="6" y1="22" x2="74" y2="22" stroke="#a0c4d8" stroke-width="2"/><line x1="40" y1="58" x2="40" y2="92" stroke="#a0c4d8" stroke-width="1.5"/><ellipse cx="40" cy="92" rx="16" ry="3.5" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="1.5" opacity="0.8"/></svg>`},
+  "Black Metal Coupette": {desc:"Black metal coupette", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><path d="M5,20 Q40,65 40,65 Q40,65 75,20 Z" fill="#2a2a2a" stroke="#555" stroke-width="2" opacity="0.9"/><line x1="40" y1="65" x2="40" y2="95" stroke="#555" stroke-width="2"/><line x1="22" y1="95" x2="58" y2="95" stroke="#555" stroke-width="2"/></svg>`},
+  "12oz Hi-Ball": {desc:"Tall & cylindrical", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><rect x="20" y="10" width="40" height="85" rx="3" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/></svg>`},
+  "10oz Hi-Ball": {desc:"Tall & cylindrical", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><rect x="22" y="15" width="36" height="78" rx="3" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/></svg>`},
+  "12oz Hi-ball": {desc:"Tall & cylindrical", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><rect x="20" y="10" width="40" height="85" rx="3" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/></svg>`},
+  "24oz wine glass": {desc:"Large balloon wine glass", svg:`<svg viewBox="0 0 80 120" width="60" height="90"><path d="M20,10 Q5,50 40,65 Q75,50 60,10 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="40" y1="65" x2="40" y2="100" stroke="#a0c4d8" stroke-width="2"/><line x1="22" y1="100" x2="58" y2="100" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "20oz wine glass": {desc:"Large balloon wine glass", svg:`<svg viewBox="0 0 80 120" width="60" height="90"><path d="M20,10 Q5,50 40,65 Q75,50 60,10 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="40" y1="65" x2="40" y2="100" stroke="#a0c4d8" stroke-width="2"/><line x1="22" y1="100" x2="58" y2="100" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "Small Mason Jar": {desc:"Small mason jar", svg:`<svg viewBox="0 0 80 100" width="60" height="75"><rect x="18" y="20" width="44" height="65" rx="4" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><rect x="14" y="13" width="52" height="10" rx="3" fill="#c8dce8" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "Copper Pineapple": {desc:"Copper pineapple vessel", svg:`<svg viewBox="0 0 80 110" width="60" height="82"><ellipse cx="40" cy="70" rx="25" ry="30" fill="#e8d5a0" stroke="#c4a04a" stroke-width="2" opacity="0.85"/><path d="M30,42 Q35,20 40,12 Q45,20 50,42" fill="#5a8f3c" stroke="#3a6a1c" stroke-width="1.5"/></svg>`},
+  "Hurricane glass": {desc:"Tall curved hurricane", svg:`<svg viewBox="0 0 80 120" width="60" height="90"><path d="M25,10 Q10,40 15,75 Q20,100 40,105 Q60,100 65,75 Q70,40 55,10 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/></svg>`},
+  "Mule jug": {desc:"Copper mule jug", svg:`<svg viewBox="0 0 80 100" width="60" height="75"><rect x="15" y="15" width="42" height="70" rx="6" fill="#e8d5a0" stroke="#c4a04a" stroke-width="2" opacity="0.85"/><path d="M57,30 Q75,35 75,55 Q75,72 57,72" fill="none" stroke="#c4a04a" stroke-width="2.5"/></svg>`},
+  "Flute": {desc:"Champagne flute", svg:`<svg viewBox="0 0 80 120" width="60" height="90"><path d="M30,10 Q28,50 25,80 Q22,95 40,100 Q58,95 55,80 Q52,50 50,10 Z" fill="#e8f4f8" stroke="#a0c4d8" stroke-width="2" opacity="0.7"/><line x1="40" y1="100" x2="40" y2="115" stroke="#a0c4d8" stroke-width="2"/><line x1="28" y1="115" x2="52" y2="115" stroke="#a0c4d8" stroke-width="2"/></svg>`},
+  "Rocks glass (Black base + Black sand)": {desc:"Rocks glass w/ black sand", svg:`<svg viewBox="0 0 80 80" width="60" height="60"><path d="M8,28 L13,68 L67,68 L72,28 Z" fill="#e8f4f8" stroke="#333" stroke-width="2" opacity="0.7"/><line x1="8" y1="28" x2="72" y2="28" stroke="#333" stroke-width="2"/><rect x="13" y="65" width="54" height="3" fill="#222"/></svg>`},
+};
+function getGlass(name) {
+  return GLASS_SVGS[name] || GLASS_SVGS["Rocks glass"] || {desc:"", svg:"🥂"};
+}
+
+// ── Step definitions ───────────────────────────────────────────────────────────
+// G&Ts have garnish injected right after ice (before mixers)
+function getSteps(c) {
+  const isGT = c.category === "G&Ts";
+  // Method always comes right after glass (index 1)
+  // Then: muddle (if any), rim (if any), ice, mixers/gtGarnish, spirit, [premix], garnish
+  const base = isGT
+    ? ["glass", "method", "ice", "gtGarnish", "spirit"]
+    : ["glass", "method", "muddle_placeholder", "rim_placeholder", "ice", "mixers", "spirit", "garnish"];
+
+  if (isGT) {
+    const gtSteps = ["glass", "method"];
+    if (c.blueIce) gtSteps.push("blueIcePaint");
+    gtSteps.push("ice");
+    if (c.silverDust) gtSteps.push("silverDust");
+    gtSteps.push("gtGarnish");
+    gtSteps.push("spirit");
+    return gtSteps;
+  }
+
+  // Build dynamic step list
+  const steps = ["glass", "method"];
+  if (c.muddle) steps.push("muddle");
+  if (c.rim) steps.push("rim");
+  steps.push("ice");
+  if (c.mixers && c.mixers.length > 0) steps.push("mixers");
+  steps.push("spirit");
+  if (c.premixComposition) steps.push("premix");
+  if (c.postPremixMixers && c.postPremixMixers.length > 0) steps.push("postPremixMixers");
+  if (c.garnish) steps.push("garnish");
+  return steps;
+}
+
+const STEP_LABELS = {
+  glass:     "🥃 Choose Your Glass",
+  ice:       "🧊 What Ice Goes In?",
+  blueIcePaint: "🎨 Prepare the Glass",
+  silverDust: "✨ Silver Dust",
+  muddle:    "🫚 Muddle First",
+  rim:       "🧂 What Type of Rim?",
+  gtGarnish: "🌿 Add the G&T Garnish",
+  mixers:    "🧪 What Goes In Next?",
+  postPremixMixers: "🧪 What Goes In After the Premix?",
+  spirit:    "🍶 Add the Spirit",
+  premix:    "🧬 Premix Composition",
+  method:    "🔀 How Do You Make It?",
+  garnish:   "🌿 Final Touch",
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  screen: "menu",       // menu | quiz | result | drillCountdown | drillFail
+  category: "all",
+  cocktail: null,
+  steps: [],
+  stepIndex: 0,
+  mixerIndex: 0,
+  tries: 0,
+  selected: null,
+  status: null,         // null | correct | wrong | revealed
+  options: [],
+  confirmed: [],
+  score: {correct: 0, total: 0},
+  completed: [],
+  // Drill mode
+  drillMode: false,
+  drillLives: 2,        // wrong answers remaining this drink
+  drillTimer: null,     // setInterval id
+  drillTimeLeft: 4000,  // ms remaining on current question
+  drillTotalTime: 4000, // ms per question
+  drillCountdown: 3,    // pre-drink countdown value
+  drillStreak: 0,       // current consecutive perfect drinks
+  drillBestStreak: 0,   // session best streak
+};
+
+// ── Drill mode helpers ───────────────────────────────────────────────────────
+function drillClearTimer() {
+  if (state.drillTimer) { clearInterval(state.drillTimer); state.drillTimer = null; }
+}
+
+function drillStartTimer() {
+  drillClearTimer();
+  if (!state.drillMode || isSingleConfirm() || state.status !== null) return;
+  state.drillTimeLeft = state.drillTotalTime;
+  state.drillTimer = setInterval(() => {
+    state.drillTimeLeft -= 100;
+    // Update timer bar only (no full re-render for performance)
+    const bar = document.getElementById("drill-timer-bar");
+    if (bar) {
+      const pct = Math.max(0, state.drillTimeLeft / state.drillTotalTime * 100);
+      bar.style.width = pct + "%";
+      if (pct < 30) bar.classList.add("warning"); else bar.classList.remove("warning");
+    }
+    if (state.drillTimeLeft <= 0) {
+      drillClearTimer();
+      drillTimeUp();
+    }
+  }, 100);
+}
+
+function drillTimeUp() {
+  // Count as wrong answer
+  state.drillLives--;
+  state.score.total++;
+  state.status = "revealed";
+  if (state.drillLives <= 0) {
+    // Fail — restart this drink after showing answer briefly
+    render();
+    setTimeout(() => {
+      state.screen = "drillFail";
+      render();
+    }, 1800);
+  } else {
+    render();
+    // Auto-advance after showing answer
+    setTimeout(() => {
+      if (state.status === "revealed") {
+        advanceStep();
+        drillStartTimer();
+      }
+    }, 1800);
+  }
+}
+
+function drillStartCountdown(cocktailName) {
+  state.screen = "drillCountdown";
+  state.drillCountdown = 3;
+  render();
+  const tick = setInterval(() => {
+    state.drillCountdown--;
+    if (state.drillCountdown <= 0) {
+      clearInterval(tick);
+      state.screen = "quiz";
+      render();
+      drillStartTimer();
+    } else {
+      render();
+    }
+  }, 1000);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function getFiltered() {
+  if (state.category === "all") return COCKTAILS;
+  return COCKTAILS.filter(c => c.category === state.category);
+}
+
+function currentAnswer() {
+  const c = state.cocktail;
+  const step = state.steps[state.stepIndex];
+  if (step === "glass") return c.glass;
+  if (step === "blueIcePaint") return "Paint the inside of the glass with blue edible paint";
+  if (step === "silverDust") return "Silver Dust";
+  if (step === "muddle") return c.muddle;
+  if (step === "rim") return c.rim;
+  if (step === "ice") return c.ice;
+  if (step === "gtGarnish") return c.garnish;
+  if (step === "mixers") return c.mixers[state.mixerIndex];
+  if (step === "postPremixMixers") return c.postPremixMixers[state.mixerIndex];
+  if (step === "spirit") return c.spirit;
+  if (step === "premix") return c.premixComposition;
+  if (step === "method") return c.method;
+  if (step === "garnish") return c.garnish;
+  return "";
+}
+
+function buildOptions() {
+  const c = state.cocktail;
+  const step = state.steps[state.stepIndex];
+  let opts = [];
+  if (step === "glass") {
+    opts = shuffle(c.glassOptions);
+  } else if (step === "blueIcePaint") {
+    opts = ["Paint the inside of the glass with blue edible paint"];
+  } else if (step === "muddle") {
+    opts = shuffle(c.muddleOptions);
+  } else if (step === "rim") {
+    opts = shuffle(c.rimOptions);
+  } else if (step === "ice") {
+    opts = shuffle(c.iceOptions);
+  } else if (step === "gtGarnish") {
+    opts = shuffle(c.garnishOptions);
+  } else if (step === "postPremixMixers") {
+    const ans = c.postPremixMixers[state.mixerIndex];
+    const allMixers = new Set([...(c.mixers||[]), ...(c.postPremixMixers||[])]);
+    const noz = !/oz|dash/i.test(ans);
+    let pool = COCKTAILS.filter(x => x.id !== c.id).flatMap(x => [...(x.mixers||[]), ...(x.postPremixMixers||[])]).filter(m => m !== ans && !allMixers.has(m));
+    pool = noz ? pool.filter(m => !/oz|dash/i.test(m) && !/espresso|bitters|tonic|soda|sprite/i.test(m)) : pool.filter(m => /oz|dash|tonic|soda|sprite|espresso|purée|puree|custard|bitters|leaves|wedges/i.test(m));
+    opts = shuffle([ans, ...shuffle([...new Set(pool)]).slice(0,3)]);
+  } else if (step === "mixers") {
+    const ans = c.mixers[state.mixerIndex];
+    const allCocktailMixers = new Set(c.mixers); // exclude ALL of this cocktail's mixers as distractors
+    const noz = !/oz|dash/i.test(ans);
+    let pool = COCKTAILS.filter(x => x.id !== c.id).flatMap(x => x.mixers).filter(m => m !== ans && !allCocktailMixers.has(m));
+    pool = noz ? pool.filter(m => !/oz|dash/i.test(m)) : pool.filter(m => /oz|dash|tonic|soda|sprite|espresso|purée|puree|custard|bitters|leaves|wedges/i.test(m));
+    opts = shuffle([ans, ...shuffle([...new Set(pool)]).slice(0,3)]);
+  } else if (step === "spirit") {
+    if (c.spirit.startsWith("No spirit")) { opts = ["No spirit — zero proof"]; }
+    else { opts = shuffle(c.spiritOptions); }
+  } else if (step === "premix") {
+    opts = shuffle(c.premixOptions);
+  } else if (step === "method") {
+    opts = shuffle(c.methodOptions);
+  } else if (step === "garnish") {
+    opts = shuffle(c.garnishOptions);
+  }
+  state.options = opts;
+}
+
+function startQuiz() {
+  drillClearTimer();
+  const pool = getFiltered().filter(c => !state.completed.includes(c.id));
+  const src = pool.length > 0 ? pool : getFiltered();
+  const c = src[Math.floor(Math.random() * src.length)];
+  state.cocktail = c;
+  state.steps = getSteps(c);
+  state.stepIndex = 0;
+  state.mixerIndex = 0;
+  state.tries = 0;
+  state.selected = null;
+  state.status = null;
+  state.confirmed = [];
+  state.drillLives = 2;
+  buildOptions();
+  if (state.drillMode) {
+    drillStartCountdown(c.name);
+  } else {
+    state.screen = "quiz";
+    render();
+  }
+}
+
+function isSingleConfirm() {
+  const step = state.steps[state.stepIndex];
+  const c = state.cocktail;
+  return step === "blueIcePaint"
+    || step === "silverDust"
+    || (step === "spirit" && c.spirit.startsWith("No spirit"))
+    || (step === "garnish" && c.garnishConfirm);
+}
+
+function handleGotIt() {
+  const step = state.steps[state.stepIndex];
+  const label = step === "blueIcePaint" ? "Blue edible paint applied"
+    : step === "silverDust" ? "Silver Dust added"
+    : step === "garnish" ? currentAnswer()
+    : "No spirit — zero proof";
+  const icon = step === "blueIcePaint" ? "🎨"
+    : step === "silverDust" ? "✨"
+    : step === "garnish" ? "🌿"
+    : "🚫🍶";
+  state.confirmed.push({type: step, value: label, icon});
+  advanceStep();
+}
+
+function advanceStep() {
+  const step = state.steps[state.stepIndex];
+  // If mixers and more remain
+  if ((step === "mixers" && state.mixerIndex < state.cocktail.mixers.length - 1) ||
+      (step === "postPremixMixers" && state.mixerIndex < (state.cocktail.postPremixMixers||[]).length - 1)) {
+    state.confirmed.push({type:"mixer", value: currentAnswer(), icon:"🧪"});
+    state.mixerIndex++;
+    state.tries = 0; state.selected = null; state.status = null;
+    buildOptions(); render(); return;
+  }
+  // Record confirmed (blueIcePaint already logged by handleGotIt — skip)
+  const icons = {glass:"🥃",blueIcePaint:"🎨",silverDust:"✨",muddle:"🫚",rim:"🧂",ice:"🧊",gtGarnish:"🌿",mixer:"🧪",mixers:"🧪",postPremixMixers:"🧪",spirit:"🍶",premix:"🧬",method:"🔀",garnish:"🌿"};
+  if (step !== "blueIcePaint") {
+    state.confirmed.push({type: step, value: currentAnswer(), icon: icons[step]||"✅"});
+  }
+  state.stepIndex++;
+  if (state.stepIndex >= state.steps.length) {
+    state.completed.push(state.cocktail.id);
+    if (state.drillMode) {
+      state.drillStreak++;
+      if (state.drillStreak > state.drillBestStreak) state.drillBestStreak = state.drillStreak;
+      // Auto-start next drink after brief result flash
+      state.screen = "result"; render();
+      setTimeout(() => startQuiz(), 2500);
+    } else {
+      state.screen = "result"; render();
+    }
+    return;
+  }
+  state.mixerIndex = 0; state.tries = 0; state.selected = null; state.status = null;
+  buildOptions(); render();
+  if (state.drillMode && state.screen === "quiz") drillStartTimer();
+}
+
+function handleSelect(opt) {
+  if (state.status === "correct" || state.status === "revealed") return;
+  state.selected = opt;
+  const ans = currentAnswer();
+  if (opt === ans) {
+    drillClearTimer();
+    state.status = "correct";
+    state.score.correct++; state.score.total++;
+    render();
+    if (state.drillMode) {
+      // Auto-advance after brief correct flash
+      setTimeout(() => {
+        if (state.status === "correct") {
+          advanceStep();
+          drillStartTimer();
+        }
+      }, 600);
+    }
+    return;
+  }
+  // Wrong answer
+  if (state.drillMode) {
+    drillClearTimer();
+    state.drillLives--;
+    state.score.total++;
+    state.status = state.drillLives <= 0 ? "revealed" : "wrong";
+    render();
+    if (state.drillLives <= 0) {
+      state.drillStreak = 0;
+      setTimeout(() => { state.screen = "drillFail"; render(); }, 1800);
+    } else {
+      setTimeout(() => {
+        const el = document.getElementById("options-list");
+        if (el) el.classList.add("shake");
+        setTimeout(() => {
+          el && el.classList.remove("shake");
+          state.status = null; state.selected = null;
+          render();
+          drillStartTimer();
+        }, 500);
+      }, 10);
+    }
+    return;
+  }
+  // Normal mode
+  state.tries++;
+  state.score.total++;
+  if (state.tries >= 2) {
+    state.status = "revealed";
+    render();
+    setTimeout(() => {
+      const el = document.getElementById("options-list");
+      if (el) el.classList.add("shake");
+      setTimeout(() => el && el.classList.remove("shake"), 500);
+    }, 10);
+  } else {
+    state.status = "wrong";
+    render();
+    setTimeout(() => {
+      const el = document.getElementById("options-list");
+      if (el) el.classList.add("shake");
+      setTimeout(() => {
+        el && el.classList.remove("shake");
+        state.status = null; state.selected = null;
+        render();
+      }, 500);
+    }, 10);
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  if (state.screen === "menu") { app.innerHTML = renderMenu(); }
+  else if (state.screen === "quiz") { app.innerHTML = renderQuiz(); }
+  else if (state.screen === "drillCountdown") { app.innerHTML = renderDrillCountdown(); }
+  else if (state.screen === "drillFail") { app.innerHTML = renderDrillFail(); }
+  else { app.innerHTML = renderResult(); }
+  attachEvents();
+}
+
+function renderMenu() {
+  const total = COCKTAILS.length;
+  const cats = ["Classic Cocktails","G&Ts","Lower Proof","Telefèric Classics","Seasonal Cocktails","Zero Proof"];
+  const catBtns = [["all",`All (${total})`], ...cats.map(c => [c, c+` (${COCKTAILS.filter(x=>x.category===c).length})`])]
+    .map(([val,label]) => {
+      const active = state.category === val ? "active" : "";
+      return `<button class="filter-btn ${active}" data-cat="${val}">${label}</button>`;
+    }).join("");
+  return `<div class="card">
+    <div class="logo-row"><div class="logo-icon">🍸</div><div><div class="logo-title">telefèric</div><div class="logo-sub">COCKTAIL BUILDER</div></div></div>
+    <p class="menu-desc">Build each cocktail step by step — glass, ice, mixers, spirit, method, garnish. 2 tries per question.</p>
+    <div class="score-row">
+      <div class="score-pill"><span class="score-num">${state.score.correct}</span><span class="score-label">CORRECT</span></div>
+      <div class="score-pill"><span class="score-num">${state.score.total}</span><span class="score-label">ANSWERED</span></div>
+      <div class="score-pill"><span class="score-num">${state.completed.length}</span><span class="score-label">DONE</span></div>
+      ${state.drillBestStreak > 0 ? `<div class="score-pill"><span class="score-num">🔥${state.drillBestStreak}</span><span class="score-label">BEST STREAK</span></div>` : ""}
+    </div>
+    <div class="filter-label">CATEGORY</div>
+    <div class="filter-grid">${catBtns}</div>
+    <div class="drill-toggle-row">
+      <div><div class="drill-toggle-label">⚡ DRILL MODE</div><div class="drill-toggle-sub">4 sec per question · 2 wrong = restart</div></div>
+      <label class="toggle-switch"><input type="checkbox" id="drill-toggle" ${state.drillMode?"checked":""}><span class="toggle-slider"></span></label>
+    </div>
+    <button class="btn-primary" id="start-btn">${state.drillMode ? "⚡ START DRILL →" : "BUILD A COCKTAIL →"}</button>
+    ${state.completed.length > 0 ? `<button class="btn-ghost" id="reset-btn">Reset Progress</button>` : ""}
+  </div>`;
+}
+
+function renderQuiz() {
+  const c = state.cocktail;
+  const steps = state.steps;
+  const si = state.stepIndex;
+  const step = steps[si];
+  const ans = currentAnswer();
+
+  // Progress dots
+  const dots = steps.map((s,i) => {
+    const bg = i < si ? "#c7522a" : i === si ? "#e8764a" : "#ddd";
+    const scale = i === si ? "transform:scale(1.3)" : "";
+    return `<div class="progress-dot" style="background:${bg};${scale}"></div>`;
+  }).join("");
+
+  // Confirmed bar
+  let barHTML = "";
+  if (state.confirmed.length > 0) {
+    const items = state.confirmed.map(it => {
+      const val = it.type === "premix"
+        ? it.value.split(" + ").slice(0,2).join(" + ") + (it.value.split(" + ").length > 2 ? "…" : "")
+        : it.value;
+      return `<span class="bar-item">${it.icon} ${val}</span>`;
+    }).join("");
+    barHTML = `<div class="bar-counter"><div class="bar-counter-label">IN THE GLASS SO FAR</div><div class="bar-items">${items}</div></div>`;
+  }
+
+  // Step label
+  let stepLabel = STEP_LABELS[step] || step;
+  if (step === "premix") stepLabel = `🧬 What's in the ${c.spirit.replace(/^[\d½¾¼.x ]+ oz /i,"").replace(/^[\d.]+ oz /i,"")}?`;
+  if (step === "gtGarnish") stepLabel = "🌿 Add the G&T Garnish";
+  if (step === "ice" && c.blueIce) stepLabel = "🧊 After painting the glass, what ice goes in?";
+
+  // Sub-label
+  let subLabel = "";
+  const totalMixers = c.mixers ? c.mixers.length : 0;
+  if (step === "mixers" && totalMixers > 1) subLabel += `<div class="mixer-count">Mixer ${state.mixerIndex+1} of ${totalMixers}</div>`;
+  if (step === "mixers" && c.mixerHints) subLabel += `<div class="hint">Hint: ${c.mixerHints[state.mixerIndex]}</div>`;
+  if (step === "postPremixMixers" && c.postPremixMixerHints) subLabel += `<div class="hint">Hint: ${c.postPremixMixerHints[state.mixerIndex]}</div>`;
+
+  // Tries row
+  const triesHTML = !isSingleConfirm() && (state.status === null || state.status === "wrong")
+    ? `<div class="tries-row">
+        <div class="try-dot" style="background:${state.tries>0?"#e84a3c":"#ddd"}"></div>
+        <div class="try-dot" style="background:${state.tries>1?"#e84a3c":"#ddd"}"></div>
+        <span class="tries-label">${state.tries===0?"2 tries remaining":"1 try remaining"}</span>
+      </div>`
+    : "";
+
+  // Main content area
+  let mainHTML = "";
+  if (isSingleConfirm()) {
+    let cls = "green", icon2 = "🚫🍶", msg = "No spirit — this is a <strong>zero proof</strong> drink";
+    if (step === "blueIcePaint") { cls = "blue"; icon2 = "🎨"; msg = "Paint the inside of the glass with <strong>blue edible paint</strong>"; }
+    else if (step === "silverDust") { cls = "blue"; icon2 = "✨"; msg = "Add a pinch of <strong>Silver Dust</strong> to the glass"; }
+    else if (step === "garnish" && c.garnishConfirm) {
+      cls = "blue"; icon2 = "🌿";
+      msg = `Final touch — <strong>${currentAnswer()}</strong>`;
+    }
+    mainHTML = `<div class="info-card ${cls}"><div class="info-card-icon">${icon2}</div><div class="info-card-text">${msg}</div><button class="btn-next" id="got-it-btn">Got it →</button></div>`;
+  } else if (step === "glass") {
+    const cards = state.options.map(opt => {
+      const gi = getGlass(opt);
+      let cls = "";
+      if (state.status === "correct" && opt === state.selected) cls = "correct";
+      else if ((state.status === "wrong" || state.status === "revealed") && opt === state.selected && opt !== ans) cls = "wrong";
+      else if (state.status === "revealed" && opt === ans) cls = "reveal-correct";
+      const badge = (state.status === "correct" && opt === state.selected) || (state.status === "revealed" && opt === ans) ? `<div class="badge" style="color:#2ecc71">✓</div>` :
+        (state.status !== "correct" && opt === state.selected && opt !== ans) ? `<div class="badge" style="color:#e84a3c">✗</div>` : "";
+      return `<button class="glass-card ${cls}" data-opt="${opt.replace(/"/g,"&quot;")}">
+        <div class="glass-svg">${gi.svg}</div>
+        <div class="glass-name">${opt}</div>
+        <div class="glass-desc">${gi.desc}</div>
+        ${badge}
+      </button>`;
+    }).join("");
+    mainHTML = `<div class="glass-grid">${cards}</div>`;
+  } else {
+    const btns = state.options.map(opt => {
+      let cls = "";
+      const isSel = opt === state.selected;
+      const isAns = opt === ans;
+      if (state.status === "correct" && isSel) cls = "correct";
+      else if ((state.status === "wrong" || state.status === "revealed") && isSel && !isAns) cls = "wrong";
+      else if (state.status === "revealed" && isAns) cls = "reveal-correct";
+      const tick = (state.status === "correct" && isSel) || (state.status === "revealed" && isAns) ? " ✓" : "";
+      const cross = (state.status !== null) && isSel && !isAns && state.status !== "correct" ? " ✗" : "";
+      return `<button class="option-btn ${cls}" data-opt="${opt.replace(/"/g,"&quot;").replace(/'/g,"&#39;")}">${opt}${tick}${cross}</button>`;
+    }).join("");
+    mainHTML = `<div class="options-list" id="options-list">${btns}</div>`;
+  }
+
+  // Feedback
+  let feedbackHTML = "";
+  if (state.status === "wrong" && state.tries < 2) feedbackHTML = `<div class="feedback-wrong">Not quite — try again! (1 left)</div>`;
+  if (state.status === "revealed") feedbackHTML = `<div class="feedback-revealed">The answer was: <strong>${ans}</strong></div>`;
+
+  // Next button
+  let nextHTML = "";
+  if (!isSingleConfirm() && (state.status === "correct" || state.status === "revealed")) {
+    if (state.drillMode) {
+      // In drill mode auto-advances — just show feedback, no button
+    } else {
+      const isLast = si === steps.length - 1;
+      const isMoreMixers = step === "mixers" && state.mixerIndex < totalMixers - 1;
+      const label = isLast ? "Finish 🏁" : isMoreMixers ? `Next Mixer (${state.mixerIndex+2}/${totalMixers}) →` : "Next Step →";
+      nextHTML = `<button class="btn-next" id="next-btn">${label}</button>`;
+    }
+  }
+
+  // Drill overlay elements
+  const drillHeaderHTML = state.drillMode ? `
+    <div class="drill-header">
+      <span class="drill-header-icon">⚡</span>
+      <span class="drill-header-text">DRILL</span>
+      ${state.drillStreak > 0 ? `<span style="color:#f5c97e;font-family:sans-serif;font-size:12px;margin-left:4px">🔥 ${state.drillStreak}</span>` : ""}
+      ${state.drillBestStreak > 0 ? `<span style="color:#c4a074;font-family:sans-serif;font-size:10px;margin-left:2px">best ${state.drillBestStreak}</span>` : ""}
+      <div class="drill-lives">
+        <span class="drill-life" style="opacity:${state.drillLives>=1?1:.2}">❤️</span>
+        <span class="drill-life" style="opacity:${state.drillLives>=2?1:.2}">❤️</span>
+      </div>
+    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="drill-timer-bar" style="width:${state.drillTimeLeft/state.drillTotalTime*100}%"></div></div>
+  ` : "";
+
+  return `<div class="card">
+    ${drillHeaderHTML}
+    <div class="quiz-header">
+      <button class="back-btn" id="back-btn">← Menu</button>
+      <div class="cocktail-name">${c.name}</div>
+      <div class="cat-tag">${c.category}</div>
+    </div>
+    <div class="progress-bar">${dots}</div>
+    ${barHTML}
+    <div style="margin-bottom:14px">
+      <div class="step-label">${stepLabel}</div>
+      ${subLabel}
+    </div>
+    ${triesHTML}
+    ${mainHTML}
+    ${feedbackHTML}
+    ${nextHTML}
+  </div>`;
+}
+
+function renderResult() {
+  const c = state.cocktail;
+  const pct = state.score.total > 0 ? Math.round(state.score.correct/state.score.total*100) : 0;
+  let rows = [
+    ["Glass", c.glass],
+    c.muddle ? ["Muddle", c.muddle] : null,
+    c.rim ? ["Rim", c.rim] : null,
+    ["Ice", c.ice],
+    c.category === "G&Ts" ? ["Garnish (after ice)", c.garnish] : null,
+    ["Mixers", c.mixers ? c.mixers.join(", ") : "—"],
+    ["Spirit", c.spirit],
+    c.premixComposition ? ["Premix", c.premixComposition] : null,
+    ["Method", c.method],
+    c.category !== "G&Ts" ? ["Garnish", c.garnish] : null,
+  ].filter(Boolean).map(([k,v]) =>
+    `<div class="result-row"><span>${k}</span><span class="result-val">${v}</span></div>`
+  ).join("");
+  return `<div class="card">
+    <div class="result-name">${c.name}</div>
+    <div class="result-emoji">✅</div>
+    <div class="result-title">${state.drillMode ? `🔥 Streak: ${state.drillStreak} · Best: ${state.drillBestStreak}` : "Cocktail Complete!"}</div>
+    <div class="result-summary">${rows}</div>
+    <div class="session-score">Session: ${state.score.correct}/${state.score.total} correct (${pct}%)</div>
+    <div class="result-btns">
+      ${state.drillMode
+        ? `<div style="text-align:center;color:#8c6a4a;font-family:sans-serif;font-size:13px;padding:8px 0">Next drink starting in 2.5 seconds…</div>`
+        : `<button class="btn-primary" id="next-cocktail-btn">Next Cocktail →</button>`}
+      <button class="btn-ghost" id="menu-btn">Back to Menu</button>
+    </div>
+  </div>`;
+}
+
+function renderDrillCountdown() {
+  const streakHTML = state.drillStreak > 0
+    ? `<div style="background:#3d1c0a;border-radius:8px;padding:6px 14px;display:inline-block;margin-bottom:16px">
+        <span style="color:#f5c97e;font-family:sans-serif;font-size:13px;font-weight:700">🔥 ${state.drillStreak} streak</span>
+        ${state.drillBestStreak > state.drillStreak ? `<span style="color:#c4a074;font-family:sans-serif;font-size:11px;margin-left:6px">best: ${state.drillBestStreak}</span>` : ""}
+      </div>`
+    : "";
+  return `<div class="card" style="text-align:center;padding:40px 20px">
+    <div style="font-size:11px;letter-spacing:.2em;color:#c7522a;font-family:sans-serif;font-weight:700;margin-bottom:12px">⚡ DRILL MODE</div>
+    ${streakHTML}
+    <div class="drill-cocktail-reveal">
+      <div class="drill-cocktail-reveal-name">${state.cocktail.name}</div>
+      <div class="drill-cocktail-reveal-sub">${state.cocktail.category}</div>
+    </div>
+    <div class="drill-countdown"><div class="drill-countdown-num">${state.drillCountdown}</div></div>
+    <div style="color:#8c6a4a;font-family:sans-serif;font-size:13px">Get ready — 4 seconds per question</div>
+    <div class="drill-lives" style="justify-content:center;margin-top:16px">
+      <span style="font-size:20px">❤️</span><span style="font-size:20px">❤️</span>
+    </div>
+  </div>`;
+}
+
+function renderDrillFail() {
+  const newBest = state.drillStreak === 0 && state.drillBestStreak > 0;
+  return `<div class="card">
+    <div class="drill-fail-card">
+      <div class="drill-fail-icon">💀</div>
+      <div class="drill-fail-title">DRILL OVER</div>
+      <div class="drill-fail-sub">2 incorrect on <strong>${state.cocktail.name}</strong>.<br>Streak reset.</div>
+    </div>
+    ${state.drillBestStreak > 0 ? `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:11px;letter-spacing:.15em;color:#8c6a4a;font-family:sans-serif;margin-bottom:4px">BEST STREAK THIS SESSION</div>
+      <div style="font-size:36px;font-weight:bold;color:#c7522a;font-family:Georgia,serif">🔥 ${state.drillBestStreak}</div>
+    </div>` : ""}
+    <button class="btn-primary" id="retry-btn">⚡ Start New Drill →</button>
+    <button class="btn-ghost" id="menu-btn">Back to Menu</button>
+  </div>`;
+}
+
+function attachEvents() {
+  const q = id => document.getElementById(id);
+  const $ = (sel) => document.querySelectorAll(sel);
+
+  q("start-btn") && q("start-btn").addEventListener("click", startQuiz);
+  q("reset-btn") && q("reset-btn").addEventListener("click", () => { state.completed = []; state.score = {correct:0,total:0}; render(); });
+  q("back-btn") && q("back-btn").addEventListener("click", () => { state.screen = "menu"; render(); });
+  q("next-btn") && q("next-btn").addEventListener("click", advanceStep);
+  q("got-it-btn") && q("got-it-btn").addEventListener("click", handleGotIt);
+  q("next-cocktail-btn") && q("next-cocktail-btn").addEventListener("click", startQuiz);
+  q("menu-btn") && q("menu-btn").addEventListener("click", () => { state.screen = "menu"; render(); });
+
+  $(".filter-btn").forEach(btn => btn.addEventListener("click", () => {
+    state.category = btn.dataset.cat; render();
+  }));
+  $(".glass-card").forEach(btn => btn.addEventListener("click", () => handleSelect(btn.dataset.opt)));
+  $(".option-btn").forEach(btn => btn.addEventListener("click", () => handleSelect(btn.dataset.opt)));
+
+  const drillToggle = document.getElementById("drill-toggle");
+  if (drillToggle) drillToggle.addEventListener("change", () => { state.drillMode = drillToggle.checked; render(); });
+  q("retry-btn") && q("retry-btn").addEventListener("click", () => startQuiz());
+}
+
+render();
+</script>
+</body>
+</html>
